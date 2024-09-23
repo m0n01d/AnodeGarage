@@ -7,10 +7,10 @@ import Head.Seo as Seo
 import Html
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
-import UrlPath
 import Route
 import RouteBuilder exposing (App, StatelessRoute)
 import Shared
+import UrlPath
 import View exposing (View)
 
 
@@ -51,6 +51,10 @@ data =
             (BackendTask.succeed "Hello!")
 
 
+pageTitle =
+    "Home"
+
+
 head :
     App Data ActionData RouteParams
     -> List Head.Tag
@@ -66,7 +70,7 @@ head app =
             }
         , description = "Welcome to elm-pages!"
         , locale = Nothing
-        , title = "elm-pages is running"
+        , title = pageTitle
         }
         |> Seo.website
 
@@ -76,7 +80,7 @@ view :
     -> Shared.Model
     -> View (PagesMsg Msg)
 view app shared =
-    { title = "elm-pages is running"
+    { title = pageTitle
     , body =
         [ Html.h1 [] [ Html.text "elm-pages is up and running!" ]
         , Html.p []
