@@ -128,7 +128,7 @@ type Rho
 
 
 copperRho =
-    Copper (1.7 * (10 ^ -8))
+    Copper 1.7
         |> Debug.log "copperRho"
 
 
@@ -177,40 +177,22 @@ res (Copper rho) =
         r =
             Resistance.ohms rho
 
-        rho_ =
-            Quantity.per Length.meter r
-                |> Debug.log "rho_"
-
         -- r
         len : Length.Length
         len =
             Length.meters 1.5
-                |> Debug.log "len in meters"
 
         area =
             Length.millimeters 16.0
-                |> Debug.log "area in mm2"
 
         d =
-            let
-                l =
-                    len |> Length.inMeters
+            area
+                |> Quantity.rate len
 
-                a =
-                    area |> Quantity.unwrap
-            in
-            l
-                / a
-                |> Debug.log "d"
+        -- 10 ^ -8 - 10 ^ -6
     in
-    Quantity.multiplyBy (10 ^ 6 * d) r
-        |> Debug.log "reesy"
-
-
-xx =
-    copperRho
-        |> fromResistance
-        |> Debug.log "xx"
+    Quantity.product d r
+        |> Quantity.multiplyBy 0.01
 
 
 viewTools model =
