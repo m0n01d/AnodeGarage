@@ -6,6 +6,7 @@ module Route.Tool exposing (Model, Msg, RouteParams, route, Data, ActionData)
 
 -}
 
+import Area
 import BackendTask
 import Current
 import Effect
@@ -17,9 +18,11 @@ import Html.Attributes
 import Html.Events as Events
 import Html.Events.Extra as Events
 import Json.Decode as Decode
+import Length
 import PagesMsg
 import Power
 import Quantity
+import Resistance
 import RouteBuilder
 import Server.Request
 import Server.Response
@@ -125,11 +128,8 @@ type Rho
 
 
 copperRho =
-    Copper (1.7 * 10 ^ -8)
-
-
-currentByResistance volts ohm =
-    volts / ohm
+    Copper (1.7 * (10 ^ -8))
+        |> Debug.log "copperRho"
 
 
 twelveVolts =
@@ -140,35 +140,77 @@ twentyFourVolts =
     Voltage.volts 24
 
 
-
--- elm-units version of 'P = V * I'
-
-
 watts2400 : Quantity.Quantity Float Power.Watts
 watts2400 =
-    power twelveVolts (Current.amperes 200)
+    power (Current.amperes 200)
 
 
 watts4800 : Quantity.Quantity Float Power.Watts
 watts4800 =
-    power twentyFourVolts (Current.amperes 200)
+    power (Current.amperes 200)
 
 
-power =
-    Quantity.at
+power current_ =
+    -- elm-units version of 'P = V * I'
+    current_
+        |> Quantity.at twelveVolts
 
 
-
--- I = P / V
-
-
-amps =
-    Quantity.at_
+toAmps power_ =
+    -- I = P / V
+    power_
+        |> Quantity.at_ twelveVolts
 
 
-watts200 : Quantity.Quantity Float Current.Amperes
-watts200 =
-    amps twelveVolts watts2400
+amps200 : Quantity.Quantity Float Current.Amperes
+amps200 =
+    toAmps watts2400
+
+
+fromResistance (Copper rho) resistance =
+    twelveVolts
+        |> Quantity.at_ resistance
+
+
+res (Copper rho) =
+    let
+        r =
+            Resistance.ohms rho
+
+        rho_ =
+            Quantity.per Length.meter r
+                |> Debug.log "rho_"
+
+        -- r
+        len : Length.Length
+        len =
+            Length.meters 1.5
+                |> Debug.log "len in meters"
+
+        area =
+            Length.millimeters 16.0
+                |> Debug.log "area in mm2"
+
+        d =
+            let
+                l =
+                    len |> Length.inMeters
+
+                a =
+                    area |> Quantity.unwrap
+            in
+            l
+                / a
+                |> Debug.log "d"
+    in
+    Quantity.multiplyBy (10 ^ 6 * d) r
+        |> Debug.log "reesy"
+
+
+xx =
+    copperRho
+        |> fromResistance
+        |> Debug.log "xx"
 
 
 viewTools model =
@@ -187,7 +229,7 @@ viewTools model =
                 ]
                 []
             ]
-        , Html.p [] [ Html.text "Current:", [ watts200 ] |> Debug.toString |> Html.text ]
+        , Html.p [] [ Html.text "Current:", [ res copperRho ] |> Debug.toString |> Html.text ]
         ]
 
 
